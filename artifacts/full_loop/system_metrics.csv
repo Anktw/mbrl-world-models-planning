@@ -1,0 +1,3 @@
+cycle,collected_steps,average_collection_reward,vae_loss,rssm_loss,reward_loss,cem_predicted_return,mcts_predicted_return,executed_reward
+1,32,-3.54559088,0.25883687,0.00239303,39.23526812,1.37498558,-0.04236828,-2.46322917
+2,32,-3.87403488,0.19767862,0.00101860,32.93909931,0.90467024,-0.34003187,-2.00249171

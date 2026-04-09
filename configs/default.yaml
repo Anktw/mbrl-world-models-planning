@@ -1,0 +1,57 @@
+env:
+  name: Pendulum-v1
+  obs_shape: [3]
+  action_dim: 1
+  continuous: true
+
+model:
+  vae:
+    latent_dim: 32
+    hidden_dim: 128
+    kl_beta: 0.1
+  rssm:
+    deterministic_dim: 128
+    hidden_dim: 128
+    stochastic_dim: 32
+  reward:
+    hidden_dim: 128
+
+training:
+  seed: 7
+  batch_size: 32
+  sequence_length: 8
+  pipeline_cycles: 3
+  bootstrap_steps: 128
+  collect_steps_per_cycle: 64
+  vae_epochs_per_cycle: 1
+  rssm_epochs_per_cycle: 1
+  reward_epochs_per_cycle: 1
+  steps_per_epoch: 8
+  planner_eval_episodes: 3
+  buffer_refresh_interval: 0
+  learning_rate: 0.001
+  max_epochs: 10
+  device: auto
+
+data:
+  capacity: 10000
+  min_size: 64
+
+planning:
+  cem:
+    horizon: 8
+    num_samples: 128
+    num_iterations: 5
+    elite_fraction: 0.1
+    min_std: 0.05
+    discount: 0.99
+    action_low: -2.0
+    action_high: 2.0
+  mcts:
+    horizon: 8
+    num_simulations: 100
+    max_children: 8
+    exploration_constant: 1.2
+    discount: 0.99
+    action_low: -2.0
+    action_high: 2.0
