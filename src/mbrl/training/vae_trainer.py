@@ -33,14 +33,26 @@ class VAETrainer:
         model: VAE,
         learning_rate: float,
         kl_beta: float,
+        foreground_weight: float,
+        foreground_threshold: float,
         device: torch.device,
+        kl_warmup_epochs: int = 0,
     ) -> None:
         self.model = model.to(device)
         self.optimizer = Adam(self.model.parameters(), lr=learning_rate)
         self.kl_beta = kl_beta
+        self.foreground_weight = foreground_weight
+        self.foreground_threshold = foreground_threshold
+        self.kl_warmup_epochs = max(0, kl_warmup_epochs)
         self.device = device
 
-    def train_step(self, batch: torch.Tensor) -> dict[str, float]:
+    def _kl_beta_for_epoch(self, epoch: int) -> float:
+        if self.kl_warmup_epochs <= 0:
+            return self.kl_beta
+        progress = min(1.0, float(epoch + 1) / float(self.kl_warmup_epochs))
+        return self.kl_beta * progress
+
+    def train_step(self, batch: torch.Tensor, kl_beta: float) -> dict[str, float]:
         self.model.train()
         inputs = batch.to(self.device)
         outputs = self.model(inputs)
@@ -49,7 +61,9 @@ class VAETrainer:
             inputs=inputs,
             mean=outputs["mean"],
             logvar=outputs["logvar"],
-            kl_beta=self.kl_beta,
+            kl_beta=kl_beta,
+            foreground_weight=self.foreground_weight,
+            foreground_threshold=self.foreground_threshold,
         )
 
         self.optimizer.zero_grad(set_to_none=True)
@@ -77,13 +91,14 @@ class VAETrainer:
         losses: list[float] = []
         for epoch in range(epochs):
             epoch_losses: list[float] = []
+            kl_beta = self._kl_beta_for_epoch(epoch)
             for step in range(steps_per_epoch):
                 batch = replay_buffer.sample(batch_size=batch_size, seed=seed + epoch * 100 + step)
-                step_losses = self.train_step(batch["obs"])
+                step_losses = self.train_step(batch["obs"], kl_beta=kl_beta)
                 epoch_losses.append(step_losses["total"])
             mean_epoch_loss = float(sum(epoch_losses) / len(epoch_losses))
             losses.append(mean_epoch_loss)
-            print(f"epoch {epoch + 1}/{epochs} loss={mean_epoch_loss:.6f}")
+            print(f"epoch {epoch + 1}/{epochs} beta={kl_beta:.6f} loss={mean_epoch_loss:.6f}")
 
         checkpoint_file = Path(checkpoint_path)
         checkpoint_file.parent.mkdir(parents=True, exist_ok=True)

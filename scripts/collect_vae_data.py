@@ -37,6 +37,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--steps", type=int, default=128, help="Number of transitions to collect")
     parser.add_argument("--capacity", type=int, default=1000, help="Replay buffer capacity")
     parser.add_argument("--image-size", type=int, default=64, help="Target square image size")
+    parser.add_argument(
+        "--disable-invert-colors",
+        action="store_true",
+        help="Disable inversion preprocessing on rendered frames",
+    )
+    parser.add_argument(
+        "--disable-autocontrast",
+        action="store_true",
+        help="Disable per-frame contrast normalization",
+    )
     parser.add_argument("--output", default="artifacts/vae_buffer.npz", help="Output path")
     parser.add_argument("--seed", type=int, default=7, help="Random seed")
     return parser.parse_args()
@@ -47,7 +57,13 @@ if __name__ == "__main__":
     configure_logging()
     set_global_seed(args.seed)
 
-    env = PixelObservationEnvWrapper(args.env, image_size=args.image_size, seed=args.seed)
+    env = PixelObservationEnvWrapper(
+        args.env,
+        image_size=args.image_size,
+        seed=args.seed,
+        invert_colors=not args.disable_invert_colors,
+        autocontrast=not args.disable_autocontrast,
+    )
     buffer = ReplayBuffer(
         capacity=args.capacity,
         obs_shape=env.obs_shape,

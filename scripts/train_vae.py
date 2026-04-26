@@ -22,7 +22,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--steps-per-epoch", type=int, default=10, help="Gradient steps per epoch")
     parser.add_argument("--latent-dim", type=int, default=32, help="Latent size")
     parser.add_argument("--hidden-dim", type=int, default=128, help="Hidden layer size")
-    parser.add_argument("--kl-beta", type=float, default=0.1, help="KL weight")
+    parser.add_argument("--kl-beta", type=float, default=0.01, help="KL weight")
+    parser.add_argument(
+        "--foreground-weight",
+        type=float,
+        default=15.0,
+        help="Weight multiplier for non-background reconstruction pixels",
+    )
+    parser.add_argument(
+        "--foreground-threshold",
+        type=float,
+        default=0.05,
+        help="Threshold used to classify foreground pixels",
+    )
+    parser.add_argument(
+        "--kl-warmup-epochs",
+        type=int,
+        default=10,
+        help="Linearly ramp KL weight over this many epochs",
+    )
     parser.add_argument("--learning-rate", type=float, default=1e-3, help="Optimizer learning rate")
     parser.add_argument("--checkpoint", default="artifacts/vae_model.pt", help="Checkpoint path")
     parser.add_argument(
@@ -48,6 +66,9 @@ if __name__ == "__main__":
         model=model,
         learning_rate=args.learning_rate,
         kl_beta=args.kl_beta,
+        foreground_weight=args.foreground_weight,
+        foreground_threshold=args.foreground_threshold,
+        kl_warmup_epochs=args.kl_warmup_epochs,
         device=device,
     )
 

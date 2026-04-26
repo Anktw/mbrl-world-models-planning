@@ -1,15 +1,15 @@
 # Evaluation Report
 
 ## Planner Comparison
-- CEM cumulative reward: -2152.007361
-- MCTS cumulative reward: -2220.551796
+- CEM cumulative reward: -3702.699185
+- MCTS cumulative reward: -3855.642057
 
 ## Sample Efficiency
 - Final reward per step: -0.069777
 - Total collected steps: 64
 
 ## Prediction Errors
-- RSSM latent MSE: 0.000620
+- RSSM latent MSE: 0.000512
 - Reward MSE: 30.491831
 
 ## Generated Artifacts

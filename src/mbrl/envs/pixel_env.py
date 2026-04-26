@@ -24,10 +24,19 @@ class PixelStep:
 class PixelObservationEnvWrapper:
     """Collect RGB observations from a Gymnasium environment."""
 
-    def __init__(self, env_name: str, image_size: int = 64, seed: int | None = None) -> None:
+    def __init__(
+        self,
+        env_name: str,
+        image_size: int = 64,
+        seed: int | None = None,
+        invert_colors: bool = True,
+        autocontrast: bool = True,
+    ) -> None:
         self.env = gym.make(env_name, render_mode="rgb_array")
         self.seed = seed
         self.image_size = image_size
+        self.invert_colors = invert_colors
+        self.autocontrast = autocontrast
 
         if self.env.action_space.shape is None:
             raise ValueError("Action space must define a shape")
@@ -41,6 +50,18 @@ class PixelObservationEnvWrapper:
         if render_output is None:
             raise RuntimeError("Environment render returned None")
         frame_array = np.asarray(render_output, dtype=np.float32) / 255.0
+
+        # Pendulum frames are mostly white background; invert + autocontrast
+        # prevents a trivial all-white reconstruction target.
+        if self.invert_colors:
+            frame_array = 1.0 - frame_array
+
+        if self.autocontrast:
+            low = float(frame_array.min())
+            high = float(frame_array.max())
+            if high - low > 1e-6:
+                frame_array = (frame_array - low) / (high - low)
+
         tensor = torch.from_numpy(frame_array).permute(2, 0, 1).unsqueeze(0)
         resized = F.interpolate(
             tensor,

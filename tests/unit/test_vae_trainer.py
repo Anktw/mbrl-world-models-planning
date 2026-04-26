@@ -33,7 +33,14 @@ def test_vae_trainer_reduces_loss_and_saves_artifacts(tmp_path: Path) -> None:
     _populate_buffer(buffer, 32)
 
     model = VAE(image_channels=3, hidden_dim=64, latent_dim=8)
-    trainer = VAETrainer(model=model, learning_rate=1e-3, kl_beta=0.1, device=torch.device("cpu"))
+    trainer = VAETrainer(
+        model=model,
+        learning_rate=1e-3,
+        kl_beta=0.1,
+        foreground_weight=1.0,
+        foreground_threshold=0.0,
+        device=torch.device("cpu"),
+    )
 
     result = trainer.fit(
         replay_buffer=buffer,

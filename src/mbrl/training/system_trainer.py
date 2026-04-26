@@ -85,6 +85,9 @@ class FullSystemTrainer:
             model=self.vae,
             learning_rate=config.training.learning_rate,
             kl_beta=config.model.vae.kl_beta,
+            foreground_weight=config.model.vae.foreground_weight,
+            foreground_threshold=config.model.vae.foreground_threshold,
+            kl_warmup_epochs=10,
             device=self.device,
         )
         self.rssm_trainer = RSSMTrainer(

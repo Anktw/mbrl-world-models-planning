@@ -118,10 +118,21 @@ def vae_loss(
     mean: torch.Tensor,
     logvar: torch.Tensor,
     kl_beta: float,
+    foreground_weight: float = 1.0,
+    foreground_threshold: float = 0.0,
 ) -> VAELoss:
     """Compute reconstruction and KL losses for the VAE."""
 
-    reconstruction_loss = F.mse_loss(reconstruction, inputs, reduction="mean")
+    squared_error = (reconstruction - inputs) ** 2
+    if foreground_weight > 1.0:
+        # Upweight sparse foreground pixels so the decoder cannot minimize
+        # loss by predicting only the dominant background.
+        foreground_mask = (inputs > foreground_threshold).to(inputs.dtype)
+        weights = 1.0 + (foreground_weight - 1.0) * foreground_mask
+        reconstruction_loss = torch.mean(weights * squared_error)
+    else:
+        reconstruction_loss = torch.mean(squared_error)
+
     kl_divergence = -0.5 * torch.mean(torch.sum(1 + logvar - mean.pow(2) - logvar.exp(), dim=1))
     total = reconstruction_loss + kl_beta * kl_divergence
     return VAELoss(total=total, reconstruction=reconstruction_loss, kl=kl_divergence)

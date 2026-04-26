@@ -8,7 +8,9 @@ model:
   vae:
     latent_dim: 32
     hidden_dim: 128
-    kl_beta: 0.1
+    kl_beta: 0.01
+    foreground_weight: 15.0
+    foreground_threshold: 0.05
   rssm:
     deterministic_dim: 128
     hidden_dim: 128

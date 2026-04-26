@@ -11,6 +11,8 @@ class VAEConfig(BaseModel):
     image_channels: int = Field(default=3, ge=1)
     image_size: int = Field(default=64, ge=8)
     kl_beta: float = Field(default=0.1, ge=0.0)
+    foreground_weight: float = Field(default=15.0, ge=1.0)
+    foreground_threshold: float = Field(default=0.05, ge=0.0, le=1.0)
 
 
 class RSSMConfig(BaseModel):
